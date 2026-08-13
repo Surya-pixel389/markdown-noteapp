@@ -1,0 +1,21 @@
+import api from './api';
+
+export const noteService = {
+  createNote: (title, content, parentId) =>
+    api.post('/notes', { title, content, parentId }),
+
+  getNote: (id) =>
+    api.get(`/notes/${id}`),
+
+  getRootNotes: () =>
+    api.get('/notes'),
+
+  getNoteChildren: (id) =>
+    api.get(`/notes/${id}/children`),
+
+  updateNote: (id, title, content) =>
+    api.put(`/notes/${id}`, { title, content }),
+
+  deleteNote: (id) =>
+    api.delete(`/notes/${id}`),
+};
