@@ -1,6 +1,5 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Editor } from './Editor';
-import { Preview } from './Preview';
 import { noteService } from '../../services/noteService';
 import './EditorContainer.css';
 
@@ -11,6 +10,7 @@ export const EditorContainer = ({ noteId, onClose }) => {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const saveTimeout = useRef(null);
 
   useEffect(() => {
     if (noteId) {
@@ -31,43 +31,68 @@ export const EditorContainer = ({ noteId, onClose }) => {
   };
 
   const handleTitleChange = (e) => {
-    setNote({ ...note, title: e.target.value });
+    const updated = { ...note, title: e.target.value };
+    setNote(updated);
+    scheduleSave(updated);
   };
 
   const handleContentChange = (value) => {
-    setNote({ ...note, content: value });
+    const updated = { ...note, content: value };
+    setNote(updated);
+    scheduleSave(updated);
   };
 
-  const handleSave = async () => {
+  const scheduleSave = (updatedNote) => {
+    if (saveTimeout.current) clearTimeout(saveTimeout.current);
+    saveTimeout.current = setTimeout(() => {
+      handleSave(updatedNote);
+    }, 1000);
+  };
+
+  const handleSave = async (noteToSave = note) => {
     try {
       if (noteId) {
-        await noteService.updateNote(noteId, note.title, note.content);
+        await noteService.updateNote(noteId, noteToSave.title, noteToSave.content);
       }
     } catch (err) {
       setError('Failed to save note');
     }
   };
 
+  const handleExport = async () => {
+    try {
+      const response = await noteService.exportMarkdown(noteId);
+      const blob = new Blob([response.data]);
+      const url = window.URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `${note.title}.md`;
+      a.click();
+      window.URL.revokeObjectURL(url);
+    } catch (err) {
+      setError('Failed to export note');
+    }
+  };
+
   if (loading) return <div className="editor-loading">Loading...</div>;
 
   return (
-    <div className="editor-container">
-      {error && <div className="editor-error">{error}</div>}
-      <div className="editor-header">
-        <input
-          type="text"
-          className="editor-title"
-          value={note.title}
-          onChange={handleTitleChange}
-          onBlur={handleSave}
-          placeholder="Untitled"
-        />
-        <button onClick={onClose} className="editor-close">×</button>
+      <div className="editor-container">
+        {error && <div className="editor-error">{error}</div>}
+        <div className="editor-header">
+          <input
+              type="text"
+              className="editor-title"
+              value={note.title}
+              onChange={handleTitleChange}
+              placeholder="Untitled"
+          />
+          <button onClick={handleExport} className="editor-export">Export .md</button>
+          <button onClick={onClose} className="editor-close">×</button>
+        </div>
+        <div className="editor-body">
+          <Editor content={note.content} onChange={handleContentChange} />
+        </div>
       </div>
-      <div className="editor-body">
-        <Editor content={note.content} onChange={handleContentChange} onSave={handleSave} />
-        <Preview content={note.content} />
-      </div>
-    </div>
   );
 };

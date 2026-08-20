@@ -16,6 +16,9 @@ export const noteService = {
   updateNote: (id, title, content) =>
     api.put(`/notes/${id}`, { title, content }),
 
+  exportMarkdown: (id) =>
+      api.get(`/notes/${id}/export/markdown`, { responseType: 'blob' }),
+
   deleteNote: (id) =>
     api.delete(`/notes/${id}`),
 };
