@@ -43,6 +43,11 @@ public class NoteController {
         return ResponseEntity.ok(note);
     }
 
+    @GetMapping("/search")
+    public ResponseEntity<List<NoteDto>> searchNotes(@RequestParam String query,  HttpServletRequest request){
+        Long userId = getUserId(request);
+        return  ResponseEntity.ok(noteService.searchNotes(userId, query));
+    }
     @GetMapping
     public ResponseEntity<List<NoteDto>> getRootNodes(HttpServletRequest request){
         Long userId = getUserId(request);

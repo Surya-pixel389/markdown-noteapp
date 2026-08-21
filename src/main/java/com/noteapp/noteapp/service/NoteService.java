@@ -44,6 +44,7 @@ public class NoteService {
         return convertToDto(saved);
 
     }
+
     public NoteDto getNoteById(Long noteId, Long userId) {
         Note note = noteRepository.findByIdAndUser_Id(noteId, userId)
                 .orElseThrow(() -> new ResourceNotFoundException("Note not found"));
@@ -66,6 +67,10 @@ public class NoteService {
                 .collect(Collectors.toList());
    }
 
+   public List<NoteDto> searchNotes(Long userId, String keyword) {
+        return noteRepository.searchNotes(userId, keyword)
+                .stream().map(this::convertToDto).collect(Collectors.toList());
+   }
    @Transactional
    public NoteDto updateNote(Long noteId, Long userId, NoteDto noteDto) {
         Note note = noteRepository.findByIdAndUser_Id(noteId, userId)
