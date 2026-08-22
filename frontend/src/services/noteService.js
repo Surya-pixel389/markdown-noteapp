@@ -19,6 +19,9 @@ export const noteService = {
   exportMarkdown: (id) =>
       api.get(`/notes/${id}/export/markdown`, { responseType: 'blob' }),
 
+  searchNotes: (query) =>
+      api.get(`/notes/search`, { params: { query } }),
+
   deleteNote: (id) =>
     api.delete(`/notes/${id}`),
 };

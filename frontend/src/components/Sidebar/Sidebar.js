@@ -23,6 +23,24 @@ export const Sidebar = ({ onSelectNote, selectedNoteId }) => {
     }
   };
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState(null);
+
+  const handleSearch = async (e) => {
+    const query = e.target.value;
+    setSearchQuery(query);
+    if (query.trim() === '') {
+      setSearchResults(null);
+      return;
+    }
+    try {
+      const response = await noteService.searchNotes(query);
+      setSearchResults(response.data);
+    } catch (err) {
+      console.error('Search failed');
+    }
+  };
+
   const handleCreateNote = async () => {
     try {
       const response = await noteService.createNote('New Note', '');
@@ -34,22 +52,45 @@ export const Sidebar = ({ onSelectNote, selectedNoteId }) => {
   };
 
   return (
-    <div className="sidebar">
-      <div className="sidebar-header">
-        <h2>Notes</h2>
-        <button onClick={handleCreateNote} className="btn-create" title="Create note">
-          +
-        </button>
+      <div className="sidebar">
+        <div className="sidebar-header">
+          <h2>Notes</h2>
+          <button onClick={handleCreateNote} className="btn-create" title="Create note">
+            +
+          </button>
+        </div>
+        <input
+            type="text"
+            placeholder="Search notes..."
+            value={searchQuery}
+            onChange={handleSearch}
+            className="search-input"
+        />
+        <div className="sidebar-content">
+          {searchResults !== null ? (
+              searchResults.length === 0 ? (
+                  <p className="empty">No results</p>
+              ) : (
+                  <ul className="note-tree">
+                    {searchResults.map((note) => (
+                        <li
+                            key={note.id}
+                            className={`note-item-content ${selectedNoteId === note.id ? 'selected' : ''}`}
+                            onClick={() => onSelectNote(note.id)}
+                        >
+                          <span className="note-title">{note.title}</span>
+                        </li>
+                    ))}
+                  </ul>
+              )
+          ) : loading ? (
+              <p className="loading">Loading...</p>
+          ) : notes.length === 0 ? (
+              <p className="empty">No notes yet</p>
+          ) : (
+              <NoteTree notes={notes} onSelectNote={onSelectNote} selectedId={selectedNoteId} />
+          )}
+        </div>
       </div>
-      <div className="sidebar-content">
-        {loading ? (
-          <p className="loading">Loading...</p>
-        ) : notes.length === 0 ? (
-          <p className="empty">No notes yet</p>
-        ) : (
-          <NoteTree notes={notes} onSelectNote={onSelectNote} selectedId={selectedNoteId} />
-        )}
-      </div>
-    </div>
   );
 };
