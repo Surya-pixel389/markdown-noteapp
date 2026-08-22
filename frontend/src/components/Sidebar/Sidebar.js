@@ -3,13 +3,13 @@ import { NoteTree } from './NoteTree';
 import { noteService } from '../../services/noteService';
 import './Sidebar.css';
 
-export const Sidebar = ({ onSelectNote, selectedNoteId }) => {
+export const Sidebar = ({ onSelectNote, selectedNoteId,refreshTrigger }) => {
   const [notes, setNotes] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     loadNotes();
-  }, []);
+  }, [refreshTrigger]);
 
   const loadNotes = async () => {
     try {
@@ -44,7 +44,7 @@ export const Sidebar = ({ onSelectNote, selectedNoteId }) => {
   const handleCreateNote = async () => {
     try {
       const response = await noteService.createNote('New Note', '');
-      setNotes([...notes, response.data]);
+      await loadNotes(); // reload from backend instead of manually appending
       onSelectNote(response.data.id);
     } catch (err) {
       console.error('Failed to create note');

@@ -21,6 +21,7 @@ export const EditorContainer = ({ noteId, onClose }) => {
   const loadNote = async () => {
     try {
       setLoading(true);
+      setError('');  // clear old error before loading
       const response = await noteService.getNote(noteId);
       setNote(response.data);
     } catch (err) {
@@ -53,6 +54,7 @@ export const EditorContainer = ({ noteId, onClose }) => {
     try {
       if (noteId) {
         await noteService.updateNote(noteId, noteToSave.title, noteToSave.content);
+        if (onNoteUpdate) onNoteUpdate();
       }
     } catch (err) {
       setError('Failed to save note');
